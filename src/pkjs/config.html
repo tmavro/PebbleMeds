@@ -503,6 +503,17 @@
 
   <div class="row">
     <div>
+      <div class="label">Keep Nagging</div>
+      <div class="hint">Re-alert every snooze interval until the dose is marked Taken or Skipped</div>
+    </div>
+    <label class="toggle-wrap">
+      <input type="checkbox" id="repeat-snooze">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="row">
+    <div>
       <div class="label">Privacy Mode</div>
       <div class="hint">Show "Medication Due" instead of drug name on notifications and Timeline</div>
     </div>
@@ -634,6 +645,15 @@
         </select>
       </div>
 
+      <div class="field">
+        <label>Vibration Strength</label>
+        <select id="f-vibe-strength">
+          <option value="light">Light — one buzz (default)</option>
+          <option value="medium">Medium — two buzzes</option>
+          <option value="strong">Strong — three buzzes</option>
+        </select>
+      </div>
+
       <!-- Shape -->
       <div class="field">
         <label>Pill Shape</label>
@@ -745,6 +765,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         if (cfg.settings.privacyMode !== undefined) {
           document.getElementById("privacy-mode").checked = cfg.settings.privacyMode;
+        }
+        if (cfg.settings.repeatSnooze !== undefined) {
+          document.getElementById("repeat-snooze").checked = cfg.settings.repeatSnooze;
         }
         if (cfg.settings.knownTakers && cfg.settings.knownTakers.length) {
           knownTakers = cfg.settings.knownTakers;
@@ -1003,6 +1026,7 @@ function openModal(index) {
     document.querySelector('input[name="pill-color"]').checked = true;
     setTimes([{ h: 8, m: 0 }]);
     document.getElementById("f-vibe").value = "short";
+    document.getElementById("f-vibe-strength").value = "light";
   } else {
     var med = meds[index];
     populateTakerSelect(med.taker);
@@ -1035,6 +1059,7 @@ function openModal(index) {
 
     // Vibration
     document.getElementById("f-vibe").value = med.vibePattern || "short";
+    document.getElementById("f-vibe-strength").value = med.vibeStrength || "light";
   }
 
   onScheduleTypeChange();
@@ -1171,8 +1196,10 @@ function saveMed() {
   if (!name)  { alert("Please enter the medication name."); return; }
 
   var vibe = document.getElementById("f-vibe").value;
+  var vibeStrength = document.getElementById("f-vibe-strength").value;
   var med = { taker: taker, name: name, dose: dose, shape: shape, color: color,
-              vibePattern: vibe === "short" ? undefined : vibe };
+              vibePattern:  vibe === "short"   ? undefined : vibe,
+              vibeStrength: vibeStrength === "light" ? undefined : vibeStrength };
 
   if (editingIndex >= 0 && meds[editingIndex].medId) {
     med.medId = meds[editingIndex].medId;
@@ -1225,6 +1252,7 @@ function saveConfig() {
     settings: {
       snoozeMins:   parseInt(document.getElementById("snooze-mins").value, 10) || 15,
       privacyMode:  document.getElementById("privacy-mode").checked,
+      repeatSnooze: document.getElementById("repeat-snooze").checked,
       knownTakers:  knownTakers
     }
   };
