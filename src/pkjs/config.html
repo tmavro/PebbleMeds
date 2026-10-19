@@ -946,7 +946,27 @@ function buildMedItem(med, index) {
   delBtn.className = "btn-icon";
   delBtn.textContent = "✕";
   delBtn.style.color = "#e94560";
-  delBtn.onclick = (function (i) { return function () { deleteMed(i); }; })(index);
+  var armed = false;
+  var armTimer = null;
+  delBtn.onclick = (function (i) {
+    return function () {
+      if (!armed) {
+        armed = true;
+        delBtn.textContent = "Sure?";
+        delBtn.style.background = "#e94560";
+        delBtn.style.color = "#fff";
+        armTimer = setTimeout(function () {
+          armed = false;
+          delBtn.textContent = "\u2715";
+          delBtn.style.background = "";
+          delBtn.style.color = "#e94560";
+        }, 3000);
+        return;
+      }
+      clearTimeout(armTimer);
+      deleteMed(i);
+    };
+  })(index);
 
   actions.appendChild(editBtn);
   actions.appendChild(delBtn);
@@ -958,7 +978,6 @@ function buildMedItem(med, index) {
 }
 
 function deleteMed(index) {
-  if (!confirm("Remove " + meds[index].name + "?")) return;
   meds.splice(index, 1);
   renderMedList();
 }
