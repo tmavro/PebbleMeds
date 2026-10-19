@@ -427,11 +427,25 @@
   .color-name { font-size: 9px; color: #888; text-align: center; max-width: 40px; }
 
   /* Modal footer */
+  .modal-footer { display: block; }
+  .footer-buttons { display: flex; gap: 10px; }
+
+  .form-error {
+    display: none;
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border: 1px solid #e94560;
+    border-radius: 6px;
+    background: rgba(233,69,96,0.12);
+    color: #e94560;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .form-error.visible { display: block; }
+
   .modal-footer {
     padding: 12px 16px;
     border-top: 1px solid #0f3460;
-    display: flex;
-    gap: 10px;
   }
 
   .btn-cancel {
@@ -705,8 +719,11 @@
 
     </div>
     <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save-med" onclick="saveMed()">Save Medication</button>
+      <div class="form-error" id="form-error" role="alert"></div>
+      <div class="footer-buttons">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save-med" onclick="saveMed()">Save Medication</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1031,8 +1048,21 @@ function onTakerChange() {
 // ---------------------------------------------------------------------------
 // Modal open / close
 // ---------------------------------------------------------------------------
+function showFormError(msg) {
+  var el = document.getElementById("form-error");
+  el.textContent = msg;
+  el.classList.add("visible");
+}
+
+function clearFormError() {
+  var el = document.getElementById("form-error");
+  el.textContent = "";
+  el.classList.remove("visible");
+}
+
 function openModal(index) {
   editingIndex = index;
+  clearFormError();
   document.getElementById("modal-title").textContent =
     index === -1 ? "Add Medication" : "Edit Medication";
 
@@ -1204,7 +1234,7 @@ function saveMed() {
   var takerNew = document.getElementById("f-taker-new").value.trim();
   var taker;
   if (takerSel === "__new__") {
-    if (!takerNew) { alert("Please enter a name for the person taking this medication."); return; }
+    if (!takerNew) { showFormError("Please enter a name for the person taking this medication."); return; }
     taker = takerNew;
     if (knownTakers.indexOf(taker) < 0) knownTakers.push(taker);
   } else {
@@ -1217,7 +1247,7 @@ function saveMed() {
   var shape = document.querySelector('input[name="pill-shape"]:checked').value;
   var color = document.querySelector('input[name="pill-color"]:checked').value;
 
-  if (!name)  { alert("Please enter the medication name."); return; }
+  if (!name)  { showFormError("Please enter the medication name."); return; }
 
   var vibe = document.getElementById("f-vibe").value;
   var vibeStrength = document.getElementById("f-vibe-strength").value;
@@ -1233,7 +1263,7 @@ function saveMed() {
 
   if (document.getElementById("sched-fixed").checked) {
     var times = getTimes();
-    if (!times.length) { alert("Please add at least one time."); return; }
+    if (!times.length) { showFormError("Please add at least one time."); return; }
     med.scheduleType = "fixed";
     med.times = times;
   } else if (document.getElementById("sched-interval").checked) {
@@ -1241,7 +1271,7 @@ function saveMed() {
     med.scheduleType  = "interval";
     med.intervalHours = getIntervalHours();
     if (!med.intervalHours || med.intervalHours < 1 || med.intervalHours > 168) {
-      alert("Please enter a number between 1 and 168 for the interval hours.");
+      showFormError("Please enter a number between 1 and 168 for the interval hours.");
       return;
     }
     med.startHour     = parseInt(startParts[0], 10);
@@ -1250,7 +1280,7 @@ function saveMed() {
                           ? meds[editingIndex].lastTakenTs
                           : 0;
   } else {
-    if (!weekMaskState) { alert("Please select at least one day of the week."); return; }
+    if (!weekMaskState) { showFormError("Please select at least one day of the week."); return; }
     var timeParts = document.getElementById("f-weekly-time").value.split(":");
     med.scheduleType = "weekly";
     med.weekMask     = weekMaskState;
